@@ -9,5 +9,6 @@ import { Module } from '@nestjs/common';
   imports: [TypeOrmModule.forFeature([AdminUsersEntity, AllowedAdminsEntity])],
   controllers: [AdminController],
   providers: [AdminService],
+  exports: [AdminService],
 })
 export class AdminModule {}
