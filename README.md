@@ -1,98 +1,134 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## drynest-core
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS service for Drynest. This document explains how contributors can set up the project locally.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### Prerequisites
 
-## Description
+- **Node.js**: v24.x (use `nvm use`)
+- **npm**: comes with Node 24
+- **PostgreSQL**: 13+ running locally or accessible remotely
+- **OpenSSL**: for generating RSA keys for JWT (RS256)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Quick start
 
-## Project setup
+1. Clone and install dependencies
 
 ```bash
-$ npm install
+git clone https://github.com/<org>/drynest-core.git
+cd drynest-core
+nvm use
+npm ci
 ```
 
-## Compile and run the project
+2. Create a `.env` file in the project root
+
+Use the template below. You must provide PostgreSQL credentials and RSA keys for JWT.
+
+```env
+# App
+PORT=3001
+
+# Database
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=postgres
+DATABASE_NAME=drynest_core
+
+# JWT (RS256). Keep on a single line with \n for newlines
+JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n<base64>\n-----END PRIVATE KEY-----"
+JWT_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n<base64>\n-----END PUBLIC KEY-----"
+```
+
+3. Create the database (example for local Postgres)
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+createdb drynest_core || true
 ```
 
-## Run tests
+4. Run database migrations
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run migration:run
 ```
 
-## Deployment
+If you encounter an error about `uuid_generate_v4()`, enable the Postgres extension and rerun:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+5. Seed an allowed admin email (required to sign up first admin)
+
+Because all non-auth routes are protected by a global guard, you must pre-seed an email in the `allowed_admins` table before using the signup API.
+
+```sql
+-- Connect to your database then run:
+INSERT INTO allowed_admins (email) VALUES ('you@example.com');
+```
+
+6. Start the server in watch mode
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- API base path: `http://localhost:3001/api/v1`
+- Swagger docs: `http://localhost:3001/api/v1/docs`
 
-## Resources
+### Generating RSA keys for JWT
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# Generate a 2048-bit RSA private key and corresponding public key
+openssl genrsa -out jwt_private.pem 2048
+openssl rsa -in jwt_private.pem -pubout -out jwt_public.pem
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Convert to single-line .env friendly format (escape newlines)
+awk 'BEGIN{ORS="\\n"} {gsub(/\r?\n/, "\\n"); printf "%s", $0}' jwt_private.pem | sed 's/.*/"&"/'
+awk 'BEGIN{ORS="\\n"} {gsub(/\r?\n/, "\\n"); printf "%s", $0}' jwt_public.pem | sed 's/.*/"&"/'
 
-## Support
+# Paste outputs into JWT_PRIVATE_KEY and JWT_PUBLIC_KEY respectively
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+The application replaces `\n` with real newlines internally, so the quoted single-line values will work.
 
-## Stay in touch
+### Common scripts
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+# Build
+npm run build
 
-## License
+# Lint & format
+npm run lint
+npm run format
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Run
+npm run start           # dev (non-watch)
+npm run start:dev       # dev watch
+npm run start:prod      # run compiled dist
+
+# Tests
+npm run test            # unit
+npm run test:e2e        # e2e
+npm run test:cov        # coverage
+
+# TypeORM
+npm run migration:generate -- src/migrations/<name>
+npm run migration:create -- src/migrations/<name>
+npm run migration:run
+npm run migration:revert
+```
+
+### Contributing
+
+- Create a feature branch from the relevant base branch
+- Ensure `npm run lint` and `npm test` pass locally
+- Run `npm run build` to ensure the project compiles
+- Push your branch and open a PR
+
+### Troubleshooting
+
+- **JWT config not found / invalid token**: Ensure `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` are present in `.env` and formatted as single-line strings with `\n` escapes.
+- **DB connection errors**: Verify `DATABASE_*` vars and that the database exists and is reachable.
+- **uuid_generate_v4() does not exist**: Run `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";` on your database, then re-run migrations.
+- **Wrong Node version**: Run `nvm use` (Node 24 is required).
