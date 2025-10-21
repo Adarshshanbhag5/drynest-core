@@ -8,5 +8,5 @@ config({ override: true });
 // Use the same connection options as the Nest runtime
 const defaultConnectionOptions = DbConnections()[ConnectionNames.DEFAULT];
 
-export const dataSource = new DataSource(defaultConnectionOptions);
+const dataSource = new DataSource(defaultConnectionOptions);
 export default dataSource;
