@@ -24,7 +24,7 @@ export function initSwagger(app: NestExpressApplication) {
   Object.keys(paths).forEach((path) => {
     Object.keys(paths[path]).forEach((method) => {
       const operation = paths[path][method] as { security?: any[] };
-      const publicControllers = ['app']; // @Public() controller
+      const publicControllers = ['app', 'auth']; // @Public() controller
       const isPublicEndpoint = isPublicPath(path, publicControllers);
       if (operation && !isPublicEndpoint)
         operation.security = [{ bearerAuth: [] }];

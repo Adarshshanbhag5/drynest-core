@@ -17,6 +17,14 @@ export class AdminUsersEntity {
 
   @Column({
     type: 'varchar',
+    name: 'password_hash',
+    length: 255,
+    nullable: false,
+  })
+  passwordHash: string;
+
+  @Column({
+    type: 'varchar',
     name: 'role',
     length: 255,
     nullable: false,

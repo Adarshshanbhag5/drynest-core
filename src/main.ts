@@ -4,6 +4,7 @@ import { getLogger } from './shared/logger';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { initSwagger } from './config/swagger.config';
+import { AuthGuard } from './modules/auth/guards/auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -18,6 +19,9 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+  // Global auth guard
+  const authGuard = app.get(AuthGuard);
+  app.useGlobalGuards(authGuard);
   initSwagger(app);
   await app.listen(process.env.PORT ?? 3001);
 }
