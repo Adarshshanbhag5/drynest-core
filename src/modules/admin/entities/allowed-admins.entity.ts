@@ -3,7 +3,6 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  Repository,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -31,5 +30,3 @@ export class AllowedAdminsEntity {
   })
   updatedAt: Date;
 }
-
-export class AllowedAdminsRepository extends Repository<AllowedAdminsEntity> {}

@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { DbConnections } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
     ...Object.values(DbConnections()).map((connection) =>
       TypeOrmModule.forRoot(connection),
     ),
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

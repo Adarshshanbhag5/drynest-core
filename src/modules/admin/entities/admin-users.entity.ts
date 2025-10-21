@@ -4,7 +4,6 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  Repository,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -50,5 +49,3 @@ export class AdminUsersEntity {
   })
   updatedAt: Date;
 }
-
-export class AdminUsersRepository extends Repository<AdminUsersEntity> {}
