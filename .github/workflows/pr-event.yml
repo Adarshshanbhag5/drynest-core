@@ -1,0 +1,108 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Add these permissions at the workflow level
+permissions:
+  contents: read
+  pull-requests: write # This is required for commenting on PRs
+  statuses: write # Required for setting commit status
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          check-latest: true
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        id: lint
+        run: npm run lint:ci
+        continue-on-error: true
+
+      - name: Run tests
+        id: test
+        run: npm test
+        continue-on-error: true
+
+      - name: Set lint status check
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = '${{ steps.lint.outcome }}' === 'success';
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: success ? 'success' : 'failure',
+              context: 'Lint Check',
+              description: success ? 'Linting passed' : 'Linting failed'
+            });
+
+      - name: Set test status check
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = '${{ steps.test.outcome }}' === 'success';
+            github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: success ? 'success' : 'failure',
+              context: 'Test Suite',
+              description: success ? 'Tests passed' : 'Tests failed'
+            });
+
+      - name: Comment on PR if linting failed
+        if: steps.lint.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `⚠️ **Linting Issues Detected**
+
+              Please fix the linting issues in your code before merging.
+              
+              Run \`npm run lint\` locally to see the errors.`
+            })
+
+      - name: Comment on PR if tests failed
+        if: steps.test.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ **Tests Failed**
+
+              Please fix the failing tests before merging.
+              
+              Run \`npm test\` locally to see the errors.`
+            })
