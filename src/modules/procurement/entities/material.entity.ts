@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { MaterialUnit } from '../procurement.enums';
 
 @Entity({ name: 'materials' })
 @Index(['code'], { unique: true })
@@ -19,8 +20,13 @@ export class MaterialEntity {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'varchar', length: 16, default: 'kg' })
-  unit: string;
+  @Column({
+    type: 'varchar',
+    length: 16,
+    enum: MaterialUnit,
+    default: MaterialUnit.KG,
+  })
+  unit: MaterialUnit;
 
   @Column({ name: 'hsn_code', type: 'varchar', length: 255, nullable: true })
   hsnCode?: string;
