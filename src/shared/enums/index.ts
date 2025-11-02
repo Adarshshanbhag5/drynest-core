@@ -3,3 +3,8 @@ export enum AdminUserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   MEMBER = 'MEMBER',
 }
+
+export enum SortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}

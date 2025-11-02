@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import authConfig from './config/auth.config';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProcurementModule } from './modules/procurement/procurement.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from './modules/auth/auth.module';
     ),
     AdminModule,
     AuthModule,
+    ProcurementModule,
   ],
   controllers: [AppController],
   providers: [AppService],
